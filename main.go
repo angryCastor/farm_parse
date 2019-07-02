@@ -16,26 +16,33 @@ type RespJson struct {
 }
 
 func main() {
-	port := os.Args[1]
-	if port == "" {
-		port = "20333"
+	portServer := os.Args[1]
+	if portServer == "" {
+		portServer = "20333"
 	}
+
+	portSelenium := os.Args[2]
+	if portSelenium == "" {
+		portSelenium = "20334"
+	}
+
+	portSeleniumInt, _ := strconv.ParseInt(portSelenium, 10, 32)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		url := r.URL.Query().Get("url")
-		price, err := getPrice(url)
-
+		price, err := getPrice(url, int(portSeleniumInt))
+		fmt.Println(err)
 		resp := RespJson{price, err != nil}
 		jsonStr, _ := json.Marshal(resp)
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(jsonStr)
 	})
-	fmt.Println("Server is listening " + port)
-	fmt.Println("Make request: http://localhost:" + port + "/?url={{url_price}}")
-	http.ListenAndServe("localhost:"+port, nil)
+	fmt.Println("Server is listening " + portServer)
+	fmt.Println("Make request: http://localhost:" + portServer + "/?url={{url_price}}")
+	http.ListenAndServe("localhost:"+portServer, nil)
 }
 
-func getPrice(url string) (price float64, err error) {
+func getPrice(url string, ports int) (price float64, err error) {
 	const (
 		// These paths will be different on your system.
 		seleniumPath    = "vendor/selenium-server-standalone-3.14.0.jar"
